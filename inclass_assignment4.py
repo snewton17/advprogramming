@@ -1,7 +1,5 @@
 import datetime as dt
 
-import seaborn as sb  # optional to set plot theme
-
 import matplotlib.pyplot as plt
 
 import matplotlib.ticker as mtick
@@ -12,7 +10,6 @@ import pandas as pd
 
 import yfinance as yf
 
-sb.set_theme()  # optional to set plot theme
 
 DEFAULT_START = dt.date.isoformat(dt.date.today() - dt.timedelta(365))
 DEFAULT_END = dt.date.isoformat(dt.date.today())
@@ -29,13 +26,15 @@ class Stock:
     def get_data(self):
         """method that downloads data and stores in a DataFrame."""
         data = yf.download(self.symbol, start=self.start, end=self.end)
+        data.index = pd.to_datetime(data.index)
         self.calc_returns(data)
         return data
 
     def calc_returns(self, data):
         """method that adds change and return columns to data"""
         data['Change'] = data['Close'].pct_change()  # change over time
-        data['Return'] = (1 + data['Change']).cumprod() - 1  # returns over time
+        data['Return'] = data['Close'].pct_change().round(4)  # returns over time
+        # tried using this code 'np.log([closing_price]).diff().round(4)' but was getting errors.
 
     def plot_return_dist(self):
         """method that plots instantaneous returns as histogram"""
@@ -47,7 +46,7 @@ class Stock:
         plt.show()
 
     def plot_performance(self):
-        """Method that plots stock object performance as percent."""
+        """method that plots stock object performance as percent."""
         plt.plot(self.data['Close'] / self.data['Close'].iloc[0] * 100, color='r')
         plt.grid(True)
         plt.xlabel('Date')
@@ -56,11 +55,11 @@ class Stock:
         plt.show()
 
 
-def main():  # had trouble with this one
-    print(test.data)
+def main():  # had a lot of trouble with this one, couldnt figure out what was wrong
+    my_stock = Stock("GOOG")
+    print(my_stock.data)
     test.plot_performance()
     test.plot_return_dist()
-    pass
 
 
 if __name__ == '__main__':
